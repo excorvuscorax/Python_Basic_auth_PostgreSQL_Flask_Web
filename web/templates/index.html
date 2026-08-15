@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Крестики-нолики</title>
+
+    <style>
+
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            width: 80px;
+            height: 80px;
+            border: 1px solid black;
+            text-align: center;
+            font-size: 40px;
+            cursor: pointer;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>Крестики-нолики</h1>
+
+<table id="board"></table>
+
+<p id="message"></p>
+
+
+<script>
+
+let gameId = crypto.randomUUID();
+
+
+let board = [
+    [0,0,0],
+    [0,0,0],
+    [0,0,0]
+];
+
+
+function drawBoard(){
+
+    let table = document.getElementById("board");
+
+    table.innerHTML="";
+
+
+    for(let row=0; row<3; row++){
+
+        let tr=document.createElement("tr");
+
+
+        for(let col=0; col<3; col++){
+
+            let td=document.createElement("td");
+
+
+            if(board[row][col] === 1)
+                td.innerHTML="X";
+
+            if(board[row][col] === 2)
+                td.innerHTML="O";
+
+
+            td.onclick=function(){
+
+                if(board[row][col]===0){
+
+                    board[row][col]=1;
+
+                    sendMove();
+
+                }
+
+            };
+
+
+            tr.appendChild(td);
+        }
+
+
+        table.appendChild(tr);
+
+    }
+
+}
+
+
+
+function sendMove(){
+
+    fetch(
+        "/game/" + gameId,
+        {
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                uuid:gameId,
+
+                board:{
+                    cells:
+                    [
+                        board[0][0],
+                        board[0][1],
+                        board[0][2],
+                        board[1][0],
+                        board[1][1],
+                        board[1][2],
+                        board[2][0],
+                        board[2][1],
+                        board[2][2]
+                    ]
+                }
+
+            })
+
+        }
+    )
+
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+
+        if(data.error){
+
+            document.getElementById(
+                "message"
+            ).innerHTML=data.error;
+
+            return;
+        }
+
+
+        let cells=data.board.cells;
+
+
+        board=[
+            cells.slice(0,3),
+            cells.slice(3,6),
+            cells.slice(6,9)
+        ];
+
+
+        drawBoard();
+
+
+    });
+
+
+}
+
+
+
+drawBoard();
+
+
+</script>
+
+
+</body>
+</html>

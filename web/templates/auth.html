@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Authorization</title>
+</head>
+
+
+<body>
+
+<h2>Авторизация</h2>
+
+<input id="login" placeholder="Логин">
+
+<br><br>
+
+<input id="password" type="password" placeholder="Пароль">
+
+<br><br>
+
+<button onclick="login()">
+    Войти
+</button>
+
+
+<p id="result"></p>
+
+
+
+<script>
+
+async function login(){
+
+    let login =
+        document.getElementById("login").value;
+
+
+    let password =
+        document.getElementById("password").value;
+
+
+
+    let token =
+        btoa(
+            login + ":" + password
+        );
+
+
+
+    let response = await fetch(
+        "/login",
+        {
+            method:"POST",
+
+            headers:{
+                "Authorization":
+                    "Basic " + token
+            }
+        }
+    );
+
+
+
+    let data =
+        await response.json();
+
+
+
+    if(data.success){
+
+        localStorage.setItem(
+            "auth",
+            "Basic " + token
+        );
+
+
+        localStorage.setItem(
+            "user_id",
+            data.user_id
+        );
+
+
+        window.location.href =
+            "/game";
+
+    }
+    else{
+
+        document.getElementById(
+            "result"
+        ).innerHTML =
+            data.message;
+
+    }
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>

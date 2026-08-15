@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+
+<title>
+Game
+</title>
+
+</head>
+
+
+<body>
+
+
+<h2>
+Крестики-нолики
+</h2>
+
+
+
+<button onclick="createGame(false)">
+Играть с игроком
+</button>
+
+
+<button onclick="createGame(true)">
+Играть с компьютером
+</button>
+
+
+
+<p id="game_info"></p>
+
+
+
+<h3>
+Игровое поле
+</h3>
+
+
+<div id="board"></div>
+
+
+
+<script>
+
+
+let gameId = null;
+
+
+
+function authHeaders(){
+
+    return {
+        "Authorization":
+            localStorage.getItem("auth")
+    };
+
+}
+
+
+
+
+
+async function createGame(withComputer){
+
+
+    let response =
+        await fetch(
+            "/games/create",
+            {
+
+                method:"POST",
+
+                headers:{
+
+                    ...authHeaders(),
+
+                    "Content-Type":
+                    "application/json"
+
+                },
+
+
+                body:JSON.stringify(
+                    {
+                        with_computer:
+                        withComputer
+                    }
+                )
+            }
+        );
+
+
+
+    let game =
+        await response.json();
+
+
+
+    gameId =
+        game.game_id;
+
+
+
+    showGame(game);
+
+}
+
+
+
+
+
+async function loadGame(){
+
+
+    if(gameId == null)
+        return;
+
+
+
+    let response =
+        await fetch(
+            "/games/" + gameId,
+            {
+                headers:
+                    authHeaders()
+            }
+        );
+
+
+
+    let game =
+        await response.json();
+
+
+
+    showGame(game);
+
+}
+
+
+
+
+async function move(row,column){
+
+
+    let response =
+        await fetch(
+
+            "/games/" +
+            gameId +
+            "/move",
+
+            {
+
+                method:"POST",
+
+                headers:{
+
+                    ...authHeaders(),
+
+                    "Content-Type":
+                    "application/json"
+
+                },
+
+
+                body:JSON.stringify(
+                    {
+                        row:row,
+                        column:column
+                    }
+                )
+
+            }
+        );
+
+
+
+    let game =
+        await response.json();
+
+
+
+    showGame(game);
+
+}
+
+
+
+
+
+function showGame(game){
+
+
+    gameId =
+        game.game_id;
+
+
+
+    document.getElementById(
+        "game_info"
+    ).innerHTML =
+
+        "Статус: "
+        +
+        game.status
+        +
+        "<br>"
+        +
+        "Игрок 1: "
+        +
+        game.player1_id
+        +
+        "<br>"
+        +
+        "Игрок 2: "
+        +
+        game.player2_id;
+
+
+
+    let html = "";
+
+
+
+    for(
+        let row=0;
+        row<3;
+        row++
+    ){
+
+
+        for(
+            let column=0;
+            column<3;
+            column++
+        ){
+
+
+            let value =
+                game.board.cells[
+                    row*3 + column
+                ];
+
+
+
+            html +=
+
+            "<button style='width:50px;height:50px'"
+            +
+            " onclick='move("
+            +
+            row
+            +
+            ","
+            +
+            column
+            +
+            ")'>"
+
+            +
+
+            (
+                value==1
+                ?
+                "X"
+                :
+                value==2
+                ?
+                "O"
+                :
+                ""
+            )
+
+            +
+
+            "</button>";
+
+        }
+
+
+        html += "<br>";
+
+    }
+
+
+
+    document.getElementById(
+        "board"
+    ).innerHTML =
+        html;
+
+}
+
+
+</script>
+
+
+</body>
+
+
+</html>
